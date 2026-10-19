@@ -121,3 +121,51 @@ def record_verified_repair(body: RecipeRequest):
 @app.get("/v1/metrics", dependencies=[Depends(authenticate)])
 def metrics():
     return store.stats()
+
+
+class DispatchRequest(BaseModel):
+    repository: str = Field(min_length=3, max_length=200)
+
+
+class MarketingRequest(BaseModel):
+    customer_permission: bool = False
+
+
+@app.get("/v1/jobs/{job_id}/coding-preview", dependencies=[Depends(authenticate)])
+def coding_preview(job_id: str):
+    from .openhands import coding_task
+    job = store.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+    try:
+        return {"draft_coding_task": coding_task(job), "dispatched": False}
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
+
+
+@app.post("/v1/jobs/{job_id}/dispatch-coding", dependencies=[Depends(authenticate)])
+def dispatch_coding(job_id: str, body: DispatchRequest):
+    from .openhands import dispatch
+    job = store.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+    try:
+        return dispatch(job, body.repository)
+    except (ValueError, RuntimeError) as exc:
+        raise HTTPException(409, str(exc))
+    except Exception:
+        raise HTTPException(502, "Remote coding provider failed; inspect provider logs")
+
+
+@app.post("/v1/jobs/{job_id}/marketing-draft", dependencies=[Depends(authenticate)])
+def marketing_draft(job_id: str, body: MarketingRequest):
+    from .social import case_study_draft
+    job = store.get_job(job_id)
+    if not job:
+        raise HTTPException(404, "Job not found")
+    try:
+        return case_study_draft(job, body.customer_permission)
+    except PermissionError as exc:
+        raise HTTPException(403, str(exc))
+    except ValueError as exc:
+        raise HTTPException(409, str(exc))
