@@ -1,0 +1,7 @@
+{
+  "name": "mend-audit-tools",
+  "private": true,
+  "version": "0.1.0",
+  "description": "Locally hosted axe-core for in-browser accessibility inspection",
+  "dependencies": { "axe-core": "^4.10.3" }
+}
