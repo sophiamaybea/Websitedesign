@@ -20,7 +20,7 @@ def inspect(url, job_id):
     result = {"url": url, "title": "", "flags": [], "counts": {},
               "viewports": {}, "console_errors": [], "axe": {"status": "not_run"}}
     with sync_playwright() as pw:
-        browser = pw.chromium.launch(headless=True, args=["--no-sandbox", "--disable-dev-shm-usage"])
+        browser = pw.chromium.launch(headless=True, args=["--disable-dev-shm-usage"])
         try:
             for label, width, height in (("mobile", 390, 844), ("desktop", 1440, 900)):
                 context = browser.new_context(viewport={"width": width, "height": height},
@@ -39,7 +39,7 @@ def inspect(url, job_id):
                         try:
                             validate_public_url(route.request.url)
                             route.continue_()
-                        except (UnsafeTarget, Exception):
+                        except UnsafeTarget:
                             route.abort()
                     page.route("**/*", guard)
                     page.on("pageerror", lambda error: errors.append(str(error)[:300]))
