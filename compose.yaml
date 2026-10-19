@@ -1,0 +1,28 @@
+services:
+  api:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      MEND_API_KEY: ${MEND_API_KEY:?Set a secure key}
+      MEND_DB_PATH: /data/mend.sqlite3
+      MEND_ARTIFACT_DIR: /app/artifacts
+    volumes:
+      - mend-data:/data
+      - mend-artifacts:/app/artifacts
+    restart: unless-stopped
+  worker:
+    build: .
+    command: ["python", "-m", "mend.worker"]
+    environment:
+      MEND_DB_PATH: /data/mend.sqlite3
+      MEND_ARTIFACT_DIR: /app/artifacts
+      MEND_ENABLE_BROWSER: "true"
+      MEND_ENABLE_LAYA: "false"
+    volumes:
+      - mend-data:/data
+      - mend-artifacts:/app/artifacts
+    restart: unless-stopped
+volumes:
+  mend-data:
+  mend-artifacts:
