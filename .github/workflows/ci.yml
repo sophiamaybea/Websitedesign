@@ -13,4 +13,4 @@ jobs:
           python-version: "3.12"
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m compileall -q mend tests
-      - run: pytest -q
+      - run: python -m pytest -q
